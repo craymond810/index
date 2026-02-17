@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wealth Tax Calculator</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f7f6;
+  margin: 0;
+  padding: 20px;
+}
+
+.app {
+  max-width: 1000px;
+  margin: auto;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.group { margin-bottom: 20px; }
+
+.group.two {
+  display: flex;
+  gap: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+input, select {
+  width: 100%;
+  padding: 6px;
+  margin-top: 3px;
+}
+
+button {
+  padding: 8px 15px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+}
+
+.note {
+  font-size: 12px;
+  margin-top: 15px;
+  color: #555;
+}
+
+@media (max-width: 800px) {
+  .grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+  <header>
+    <h1>Who Would Pay a Wealth Tax?</h1>
+    <p>Adjust thresholds and rates to assess impact.</p>
+  </header>
+
+  <div class="grid">
+
+    <section class="card">
+      <h2>Inputs</h2>
+
+      <div class="group">
+        <strong>Assets</strong>
+
+        <label>Property (£)
+          <input type="number" id="a_property" min="0">
+        </label>
+
+        <label>Financial assets (£)
+          <input type="number" id="a_financial" min="0">
+        </label>
+
+        <label>Business assets (£)
+          <input type="number" id="a_business" min="0">
+        </label>
+
+        <label>Pensions (£)
+          <input type="number" id="a_pensions" min="0">
+        </label>
+
+        <label>Other (£)
+          <input type="number" id="a_other" min="0">
+        </label>
+      </div>
+
+      <div class="group">
+        <strong>Debts</strong>
+
+        <label>Mortgage (£)
+          <input type="number" id="d_mortgage" min="0">
+        </label>
+
+        <label>Other debts (£)
+          <input type="number" id="d_other" min="0">
+        </label>
+      </div>
+
+      <div class="group two">
+        <div>
+          <strong>Annual Tax</strong>
+
+          <label>Threshold
+            <select id="t_annual">
+              <option value="2000000">£2m</option>
+              <option value="1000000">£1m</option>
+              <option value="500000">£500k</option>
+            </select>
+          </label>
+
+          <label>Rate
+            <select id="r_annual">
+              <option value="0.02">2%</option>
+              <option value="0.01">1%</option>
+              <option value="0.03">3%</option>
+            </select>
+          </label>
+        </div>
+
+        <div>
+          <strong>One-Off Tax</strong>
+
+          <label>Threshold
+            <select id="t_oneoff">
+              <option value="250000">£250k</option>
+              <option value="500000">£500k</option>
+              <option value="1000000">£1m</option>
+            </select>
+          </label>
+
+          <label>Rate
+            <select id="r_oneoff">
+              <option value="0.05">5%</option>
+              <option value="0.02">2%</option>
+              <option value="0.01">1%</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <button onclick="resetForm()">Reset</button>
+    </section>
+
+    <section class="card">
+      <h2>Results</h2>
+
+      <div class="row"><span>Total assets</span><strong id="total_assets">£0</strong></div>
+      <div class="row"><span>Total debts</span><strong id="total_debts">£0</strong></div>
+      <div class="row"><span>Net wealth</span><strong id="net_wealth">£0</strong></div>
+
+      <hr>
+
+      <div class="row"><span>Annual tax due</span><strong id="tax_due_annual">£0</strong></div>
+      <div class="row"><span>One-off tax due</span><strong id="tax_due_oneoff">£0</strong></div>
+
+      <p class="note">
+        Flat illustrative model. Tax applies only above threshold.
+      </p>
+    </section>
+
+  </div>
+</div>
+
+<script>
+const inputs = document.querySelectorAll("input, select");
+
+function format(num) {
+  return "£" + num.toLocaleString("en-GB", { maximumFractionDigits: 0 });
+}
+
+function calculate() {
+
+  const assets =
+    (+a_property.value || 0) +
+    (+a_financial.value || 0) +
+    (+a_business.value || 0) +
+    (+a_pensions.value || 0) +
+    (+a_other.value || 0);
+
+  const debts =
+    (+d_mortgage.value || 0) +
+    (+d_other.value || 0);
+
+  const net = assets - debts;
+
+  const annualTax = Math.max(0, net - +t_annual.value) * +r_annual.value;
+  const oneOffTax = Math.max(0, net - +t_oneoff.value) * +r_oneoff.value;
+
+  total_assets.textContent = format(assets);
+  total_debts.textContent = format(debts);
+  net_wealth.textContent = format(net);
+  tax_due_annual.textContent = format(annualTax);
+  tax_due_oneoff.textContent = format(oneOffTax);
+}
+
+function resetForm() {
+  document.querySelectorAll("input").forEach(i => i.value = "");
+  calculate();
+}
+
+inputs.forEach(input => input.addEventListener("input", calculate));
+
+calculate();
+</script>
+
+</body>
+</html>
